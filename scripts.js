@@ -671,7 +671,10 @@ function completeTask(taskId) {
 function deleteItem(type, id) {
   if (!confirm('Are you sure you want to delete this item?')) return;
   
-  fetch(`api/${type}s.php?action=delete&id=${id}`)
+  // Fix for timetable - use the singular form for the API endpoint
+  const apiEndpoint = type === 'timetable' ? 'timetable' : `${type}s`;
+  
+  fetch(`api/${apiEndpoint}.php?action=delete&id=${id}`)
       .then(response => response.json())
       .then(data => {
           if (data.success) {
