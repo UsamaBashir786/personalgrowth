@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Database Configuration File
  * 
@@ -16,7 +17,7 @@ $conn = new mysqli($servername, $username, $password, $dbname);
 
 // Check connection
 if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
+  die("Connection failed: " . $conn->connect_error);
 }
 
 // Set charset to ensure proper encoding
@@ -28,9 +29,10 @@ $conn->set_charset("utf8mb4");
  * @param string $data The data to be sanitized
  * @return string Sanitized data
  */
-function sanitize($data) {
-    global $conn;
-    return $conn->real_escape_string(trim($data));
+function sanitize($data)
+{
+  global $conn;
+  return $conn->real_escape_string(trim($data));
 }
 
 /**
@@ -39,8 +41,9 @@ function sanitize($data) {
  * @param string $date The date to format
  * @return string Formatted date
  */
-function formatDate($date) {
-    return date("F j, Y, g:i a", strtotime($date));
+function formatDate($date)
+{
+  return date("F j, Y, g:i a", strtotime($date));
 }
 
 /**
@@ -49,7 +52,8 @@ function formatDate($date) {
  * @param string $message Error message
  * @return void
  */
-function logError($message) {
-    // Log error to file
-    error_log(date('[Y-m-d H:i:s] ') . $message . PHP_EOL, 3, "error.log");
+function logError($message)
+{
+  // Log error to file
+  error_log(date('[Y-m-d H:i:s] ') . $message . PHP_EOL, 3, "error.log");
 }

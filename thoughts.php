@@ -2,23 +2,9 @@
 // Include database configuration
 require_once 'config.php';
 
-// Get all timetable entries
-$timetableQuery = "SELECT * FROM timetable ORDER BY day, time ASC";
-$timetableResult = $conn->query($timetableQuery);
-
-// Organize entries by day
-$days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-$timetableByDay = [];
-
-foreach ($days as $day) {
-    $timetableByDay[$day] = [];
-}
-
-if ($timetableResult->num_rows > 0) {
-    while ($entry = $timetableResult->fetch_assoc()) {
-        $timetableByDay[$entry['day']][] = $entry;
-    }
-}
+// Get all thoughts
+$thoughtsQuery = "SELECT * FROM thoughts ORDER BY date DESC";
+$thoughtsResult = $conn->query($thoughtsQuery);
 ?>
 
 <!DOCTYPE html>
@@ -26,7 +12,7 @@ if ($timetableResult->num_rows > 0) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weekly Timetable | Elevate - Personal Growth Tracker</title>
+    <title>Personal Thoughts | Elevate - Personal Growth Tracker</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome for icons -->
@@ -106,124 +92,68 @@ if ($timetableResult->num_rows > 0) {
             </div>
         </nav>
 
-        <!-- Timetable Content -->
+        <!-- Thoughts Content -->
         <div class="container mx-auto px-4 py-8 flex-grow">
             <h1 class="text-3xl font-bold mb-8 flex items-center">
-                <i class="fas fa-calendar-alt text-accent mr-3"></i>
-                Weekly Timetable
+                <i class="fas fa-brain text-accent mr-3"></i>
+                Personal Thoughts Journal
             </h1>
 
-            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                <!-- Add New Schedule Form -->
-                <div class="card">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Add New Thought Form -->
+                <div class="card lg:col-span-1">
                     <div class="card-header">
-                        <h3 class="card-title">Add New Schedule</h3>
+                        <h3 class="card-title">Capture a Thought</h3>
                     </div>
                     <div class="card-body">
-                        <form id="timetable-form" method="post">
-                            <div class="mb-4">
-                                <label for="day" class="form-label">Day</label>
-                                <select id="day" name="day" class="form-input form-select" required>
-                                    <?php foreach ($days as $day): ?>
-                                        <option value="<?php echo $day; ?>"><?php echo $day; ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-                            <div class="mb-4">
-                                <label for="time" class="form-label">Time</label>
-                                <input type="time" id="time" name="time" class="form-input" required>
-                            </div>
+                        <form id="thought-form" method="post">
                             <div class="mb-6">
-                                <label for="task" class="form-label">Activity</label>
-                                <input type="text" id="task" name="task" class="form-input" placeholder="Enter your activity" required>
+                                <label for="thought" class="form-label">Your Thought</label>
+                                <textarea id="thought" name="thought" class="form-input" rows="6" placeholder="What's on your mind today?" required></textarea>
                             </div>
-                            <button type="submit" id="timetable-submit-btn" class="w-full py-3 bg-accent hover:bg-accent-light text-primary font-medium rounded-lg transition-colors">
-                                Add Schedule
+                            <button type="submit" id="thought-submit-btn" class="w-full py-3 bg-accent hover:bg-accent-light text-primary font-medium rounded-lg transition-colors">
+                                Save Thought
                             </button>
                         </form>
                     </div>
                 </div>
 
-                <!-- Weekly Timetable -->
-                <div class="card lg:col-span-3">
+                <!-- All Thoughts -->
+                <div class="card lg:col-span-2">
                     <div class="card-header">
-                        <h3 class="card-title">Your Weekly Schedule</h3>
+                        <h3 class="card-title">Your Thoughts</h3>
                     </div>
-                    <div class="card-body p-0 overflow-x-auto">
-                        <div class="min-w-full">
-                            <div class="grid grid-cols-7 bg-gray-800 text-center">
-                                <?php foreach ($days as $day): ?>
-                                    <div class="py-2 px-4 border-r border-gray-700 last:border-r-0 font-medium">
-                                        <?php echo $day; ?>
-                                    </div>
-                                <?php endforeach; ?>
-                            </div>
-                            
-                            <div class="grid grid-cols-7 divide-x divide-gray-700 min-h-96">
-                                <?php foreach ($days as $day): ?>
-                                    <div class="py-2 px-2">
-                                        <?php if (count($timetableByDay[$day]) > 0): ?>
-                                            <div class="space-y-2">
-                                                <?php foreach ($timetableByDay[$day] as $entry): ?>
-                                                    <div class="bg-gray-800 rounded p-2 text-sm relative group">
-                                                        <div class="flex justify-between items-start">
-                                                            <span class="font-medium"><?php echo date('g:i A', strtotime($entry['time'])); ?></span>
-                                                            <button onclick="deleteItem('timetable', <?php echo $entry['id']; ?>)" 
-                                                                    class="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-400 transition-opacity">
-                                                                <i class="fas fa-times"></i>
-                                                            </button>
-                                                        </div>
-                                                        <p class="mt-1 text-text-secondary"><?php echo htmlspecialchars($entry['task']); ?></p>
-                                                    </div>
-                                                <?php endforeach; ?>
-                                            </div>
-                                        <?php else: ?>
-                                            <div class="h-full flex items-center justify-center text-center">
-                                                <p class="text-text-secondary text-sm">No activities scheduled</p>
-                                            </div>
-                                        <?php endif; ?>
-                                    </div>
-                                <?php endforeach; ?>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Daily Schedule List View -->
-            <div class="mt-8">
-                <h2 class="text-2xl font-bold mb-4">Schedule by Day</h2>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <?php foreach ($days as $day): ?>
-                        <div class="card">
-                            <div class="card-header">
-                                <h3 class="card-title"><?php echo $day; ?></h3>
-                            </div>
-                            <div class="card-body p-0">
-                                <?php if (count($timetableByDay[$day]) > 0): ?>
-                                    <div class="divide-y divide-gray-700">
-                                        <?php foreach ($timetableByDay[$day] as $entry): ?>
-                                            <div class="p-3 flex justify-between items-center">
-                                                <div>
-                                                    <span class="text-accent font-medium"><?php echo date('g:i A', strtotime($entry['time'])); ?></span>
-                                                    <p class="text-text-primary mt-1"><?php echo htmlspecialchars($entry['task']); ?></p>
-                                                </div>
-                                                <button onclick="deleteItem('timetable', <?php echo $entry['id']; ?>)" 
+                    <div class="card-body p-0">
+                        <div id="thoughts-container">
+                            <?php if ($thoughtsResult->num_rows > 0): ?>
+                                <div class="divide-y divide-gray-700">
+                                    <?php while ($thought = $thoughtsResult->fetch_assoc()): ?>
+                                        <div class="p-5">
+                                            <div class="flex justify-between items-start mb-3">
+                                                <span class="text-sm text-text-secondary">
+                                                    <i class="far fa-calendar-alt mr-1"></i>
+                                                    <?php echo date('F j, Y, g:i a', strtotime($thought['date'])); ?>
+                                                </span>
+                                                <button onclick="deleteItem('thought', <?php echo $thought['id']; ?>)" 
                                                         class="px-2 py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded transition-colors">
                                                     <i class="fas fa-trash-alt"></i>
                                                 </button>
                                             </div>
-                                        <?php endforeach; ?>
-                                    </div>
-                                <?php else: ?>
-                                    <div class="py-6 text-center text-text-secondary">
-                                        <p>No activities scheduled for <?php echo $day; ?></p>
-                                    </div>
-                                <?php endif; ?>
-                            </div>
+                                            <p class="text-text-primary whitespace-pre-line">
+                                                <?php echo nl2br(htmlspecialchars($thought['thought'])); ?>
+                                            </p>
+                                        </div>
+                                    <?php endwhile; ?>
+                                </div>
+                            <?php else: ?>
+                                <div class="py-12 text-center text-text-secondary">
+                                    <i class="fas fa-brain text-4xl mb-4 text-accent opacity-50"></i>
+                                    <p class="text-xl mb-2">Your thoughts journal is empty</p>
+                                    <p>Begin capturing your reflections and insights</p>
+                                </div>
+                            <?php endif; ?>
                         </div>
-                    <?php endforeach; ?>
+                    </div>
                 </div>
             </div>
         </div>
@@ -239,9 +169,9 @@ if ($timetableResult->num_rows > 0) {
     <!-- Scripts -->
     <script src="scripts.js"></script>
     <script>
-        // Refresh timetable function
-        function refreshTimetable() {
-            // Reload the page to refresh timetable
+        // Refresh thoughts function
+        function refreshThoughts() {
+            // Reload the page to refresh thoughts
             window.location.reload();
         }
         

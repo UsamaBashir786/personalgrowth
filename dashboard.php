@@ -428,7 +428,7 @@ $learningsResult = $conn->query($learningsQuery);
                     loader.classList.add('hidden');
                 }, 500);
             }, 500);
-        }, 3000); // 3 seconds
+        }, 1); // 3 seconds
     </script>
 </body>
 </html>
